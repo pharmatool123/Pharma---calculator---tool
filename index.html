@@ -1,100 +1,171 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pharma Margin Calculator</title>
+    <title>Advanced Pharma Margin Tool</title>
     <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --bg: #f0f2f5;
+        }
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        .calculator-box {
-            max-width: 400px;
+        .container {
             background: white;
-            padding: 20px;
-            margin: 0 auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
         }
-        h2 {
+        .header {
             text-align: center;
-            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 15px;
         }
         label {
-            font-weight: bold;
-            margin-top: 10px;
             display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
         }
         input {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
             box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
         }
         button {
-            width: 100%;
-            background-color: #27ae60;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #219150;
-        }
-        .result-box {
-            margin-top: 20px;
             padding: 15px;
-            background-color: #e8f8f5;
-            border-left: 5px solid #27ae60;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-calc { background: var(--success); color: white; width: 100%; grid-column: span 2; }
+        .btn-reset { background: #6c757d; color: white; }
+        .btn-copy { background: var(--primary); color: white; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .result-card {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid var(--success);
             display: none;
         }
+        .res-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 5px;
+        }
+        .res-val { font-weight: bold; color: var(--success); }
     </style>
 </head>
 <body>
 
-    <div class="calculator-box">
-        <h2>Medicine Margin Calculator</h2>
-        
-        <label for="mrp">MRP (₹):</label>
-        <input type="number" id="mrp" placeholder="Enter Maximum Retail Price">
-        
-        <label for="purchase">Purchase Price (₹):</label>
-        <input type="number" id="purchase" placeholder="Enter Wholesale/Purchase Price">
-        
-        <button onclick="calculateMargin()">Calculate Margin</button>
-
-        <div class="result-box" id="resultBox">
-            <h3 style="margin-top: 0; color: #27ae60;">Result:</h3>
-            <p id="profitRupees"></p>
-            <p id="profitPercent"></p>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>Pharma Pro Calculator</h1>
+        <p>Generic Medicine & Margin Analysis</p>
     </div>
 
-    <script>
-        function calculateMargin() {
-            let mrp = parseFloat(document.getElementById('mrp').value);
-            let purchase = parseFloat(document.getElementById('purchase').value);
+    <div class="input-group">
+        <label>MRP (₹)</label>
+        <input type="number" id="mrp" placeholder="0.00">
+    </div>
+
+    <div class="input-group">
+        <label>Purchase Price (₹)</label>
+        <input type="number" id="purchase" placeholder="0.00">
+    </div>
+
+    <button class="btn-calc" onclick="calculate()">Calculate Now</button>
+
+    <div class="result-card" id="resCard">
+        <div class="res-item">
+            <span>Net Profit:</span>
+            <span class="res-val" id="profit">₹0.00</span>
+        </div>
+        <div class="res-item">
+            <span>Margin (%):</span>
+            <span class="res-val" id="percent">0%</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn-copy" onclick="copyRes()">Copy</button>
+            <button class="btn-reset" onclick="resetAll()">Reset</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        let mrp = parseFloat(document.getElementById('mrp').value);
+        let pur = parseFloat(document.getElementById('purchase').value);
+        
+        if(mrp > 0 && pur > 0) {
+            let profit = mrp - pur;
+            let perc = (profit / mrp) * 100;
             
-            if (mrp > 0 && purchase > 0) {
-                let marginRupees = mrp - purchase;
-                // Margin is usually calculated on the selling price (MRP) in retail
-                let marginPercentage = (marginRupees / mrp) * 100; 
-                
-                document.getElementById('profitRupees').innerHTML = "<b>Net Profit:</b> ₹" + marginRupees.toFixed(2);
-                document.getElementById('profitPercent').innerHTML = "<b>Margin Percentage:</b> " + marginPercentage.toFixed(2) + "%";
-                document.getElementById('resultBox').style.display = "block";
-            } else {
-                alert("Please enter valid MRP and Purchase Price!");
-            }
+            document.getElementById('profit').innerText = "₹" + profit.toFixed(2);
+            document.getElementById('percent').innerText = perc.toFixed(2) + "%";
+            document.getElementById('resCard').style.display = "block";
+        } else {
+            alert("कृपया सही रेट भरें");
         }
-    </script>
+    }
+
+    function resetAll() {
+        document.getElementById('mrp').value = '';
+        document.getElementById('purchase').value = '';
+        document.getElementById('resCard').style.display = "none";
+    }
+
+    function copyRes() {
+        let text = `MRP: ${document.getElementById('mrp').value}\nProfit: ${document.getElementById('profit').innerText}\nMargin: ${document.getElementById('percent').innerText}`;
+        navigator.clipboard.writeText(text);
+        alert("Result Copied!");
+    }
+</script>
 
 </body>
 </html>
